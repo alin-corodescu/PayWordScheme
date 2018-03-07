@@ -69,5 +69,20 @@ public class Client {
         new ProductConsumer(1, "1",  l);
     }
 
+    public static void main(String[] args) {
+        // in functie de parametri
+        new Client().run(args);
+    }
 
+    private void run(String[] args) {
+        ClientCertificate certificate = registerWithBroker(4321);
+
+        CommunicationChannel channel = connectWithVendor(4322);
+
+//        Logica de a cumpara ceva de la vendor
+
+    }
+    private Client() {
+
+    }
 }

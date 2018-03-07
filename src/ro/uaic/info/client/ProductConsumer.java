@@ -1,5 +1,6 @@
 package ro.uaic.info.client;
 
+import ro.uaic.info.communication.CommunicationChannel;
 import ro.uaic.info.crypto.Commitment;
 import ro.uaic.info.crypto.HashChain;
 
@@ -16,7 +17,9 @@ public class ProductConsumer {
      * @param vendorPort
      * @param productID
      */
-    public ProductConsumer(int vendorPort, String productID, List<HashChain> hashChain){
-        
+    public ProductConsumer(CommunicationChannel vendor, String productID, List<HashChain> hashChain){
+
+
+
     }
 }
