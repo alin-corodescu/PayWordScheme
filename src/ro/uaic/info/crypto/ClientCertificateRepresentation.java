@@ -7,8 +7,9 @@ public class ClientCertificateRepresentation {
     private String B;
     private String U;
     private String IPu;
-    private PublicKey Kb;
-    private String info;
+    private String Kb;
+    private String Ku;
+    private Date exp;
 
     public String getB() {
         return B;
@@ -34,12 +35,28 @@ public class ClientCertificateRepresentation {
         this.IPu = IPu;
     }
 
-    public PublicKey getKb() {
+    public String getKb() {
         return Kb;
     }
 
-    public void setKb(PublicKey kb) {
+    public void setKb(String kb) {
         Kb = kb;
+    }
+
+    public String getKu() {
+        return Ku;
+    }
+
+    public void setKu(String ku) {
+        Ku = ku;
+    }
+
+    public Date getExp() {
+        return exp;
+    }
+
+    public void setExp(Date exp) {
+        this.exp = exp;
     }
 
     public String getInfo() {
@@ -49,4 +66,7 @@ public class ClientCertificateRepresentation {
     public void setInfo(String info) {
         this.info = info;
     }
+
+    private String info;
+
 }
