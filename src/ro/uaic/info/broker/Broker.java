@@ -25,4 +25,8 @@ public class Broker {
         server = new Server(clientHandler, SERVER_PORT);
         server.start();
     }
+
+    private void Broker() {
+        database = new MemoryAccountDatabase();
+    }
 }

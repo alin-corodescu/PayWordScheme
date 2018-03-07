@@ -7,7 +7,7 @@ public class SocketCommunicationChannel implements CommunicationChannel {
     }
 
     @Override
-    public String writeMessage() {
-        return null;
+    public void writeMessage(String message) {
+
     }
 }
