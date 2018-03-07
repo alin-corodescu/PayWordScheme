@@ -1,17 +1,17 @@
-BrokerClientHandler : //vezi comentarii
+Cristi : BrokerClientHandler : //vezi comentarii
 	-> implementat logica de handle a vendorului
 
-Client : // vezi comentarii - este putin de munca 
-ProductConsumer : trimite request la vendor pt a cumpara ceva, asteapta cerere de plata
+Cristi -> Client : // vezi comentarii - este putin de munca
+    ProductConsumer : trimite request la vendor pt a cumpara ceva, asteapta cerere de plata
 
-SocketCommunicationChannel: de implementat :
+Alin : SocketCommunicationChannel: de implementat :
 	1. fara transformeri + testat ca  merge
 	2. plus transformeri
 
-ClientCertificate : de implementat cu librarii de JSON
-Commitment : tot cu librarii de JSON
+Alin:    ClientCertificate : de implementat cu librarii de JSON
+    Commitment : tot cu librarii de JSON
 
-HashChain : lista de hash-uri -- easy
+Cristi : HashChain : lista de hash-uri -- easy
 
 VendorClientHandler: -> verificare commitment(U) - data expirarii
 					-> sa trimita cereri de plata la U, eventual mesaj de finish
