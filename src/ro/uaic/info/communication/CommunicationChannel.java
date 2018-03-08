@@ -11,8 +11,8 @@ public abstract class CommunicationChannel {
     List<DataTransformer> inputTransformers = new ArrayList<>();
     protected List<DataTransformer> outputTransformers = new ArrayList<>();
 
-    abstract String readMessage() throws IOException;
-    abstract void writeMessage(String message) throws IOException;
+    public abstract String readMessage() throws IOException;
+    public abstract void writeMessage(String message) throws IOException;
 
     public void withInputTransformer(DataTransformer transformer) {
         inputTransformers.add(transformer);

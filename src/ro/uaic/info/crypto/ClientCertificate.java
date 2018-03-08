@@ -21,7 +21,7 @@ public class ClientCertificate extends SignedMessage{
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        certificate.signature = message;
+        certificate.signature = certificate.message;
 
         return certificate;
     }

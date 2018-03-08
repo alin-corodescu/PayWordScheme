@@ -2,12 +2,17 @@ package ro.uaic.info.communication;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+
 
 public class SocketCommunicationChannel extends CommunicationChannel {
     Socket socket;
+
+    public SocketCommunicationChannel(Socket socket){
+       this.socket = socket;
+    }
+
+    public SocketCommunicationChannel(){
+    }
 
     @Override
     public String readMessage() throws IOException {
