@@ -71,5 +71,4 @@ public class CryptoUtils {
 
         return publicSignature.verify(signatureBytes);
     }
-
 }

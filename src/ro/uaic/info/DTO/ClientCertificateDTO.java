@@ -1,9 +1,9 @@
-package ro.uaic.info.crypto;
+package ro.uaic.info.DTO;
 
 import java.security.PublicKey;
 import java.util.Date;
 
-public class ClientCertificateRepresentation {
+public class ClientCertificateDTO {
     private String B;
     private String U;
     private String IPu;

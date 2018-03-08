@@ -1,15 +1,17 @@
 package ro.uaic.info.client;
 
+import ro.uaic.info.DTO.ClientCertificateDTO;
+import ro.uaic.info.DTO.ClientInformationDTO;
 import ro.uaic.info.communication.CommunicationChannel;
 import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.*;
+import ro.uaic.info.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +43,8 @@ public class Client {
     private void run(String[] args) throws Exception {
         this.InitializeClientData();
 
-        ClientCertificate certificate = registerWithBroker(BrokerPort);
+        System.out.println("Client is registering with the broker!");
+        registerWithBroker(BrokerPort);
 
         CommunicationChannel channel = connectWithVendor(VendorPort);
 //        Logica de a cumpara ceva de la vendor
@@ -53,32 +56,31 @@ public class Client {
         this.identity = "Client";
     }
 
-    /**
-     * Connects to the localhost:port broker and registers itself with it
-     * @param port
-     */
-    private ClientCertificate registerWithBroker(int port) throws IOException {
+    private void registerWithBroker(int port) throws IOException, SignatureException {
         Socket socket = new Socket("localhost",port);
         this.communicationChannel = new SocketCommunicationChannel(socket);
 
+//        U sends information to B to inform him that he is a user
+        this.communicationChannel.writeMessage(" client");
+
 //        U sends personal information to B
-//        TODO JSON
-//        String message = JSON(this.identity, this.keyPair.getPublic())
-        String message = "Hello";
+        System.out.println("Client is sending personal information to broker!");
+        ClientInformationDTO clientInformationDTO = new ClientInformationDTO(this.keyPair.getPublic().toString(), this.identity);
+        String message = JsonMapper.generateJsonFromDTO(clientInformationDTO);
         this.communicationChannel.writeMessage(message);
 
 //        B sends to U certificate C(U) for U to present it to the vendor when making a purchase
+        System.out.println("Client is receiving certificate from broker!");
         message = this.communicationChannel.readMessage();
-//        TODO JSON
-//        this.clientCertificate = JSON(message)
+        ClientCertificateDTO clientCertificateDTO = new ClientCertificateDTO();
+        clientCertificateDTO = (ClientCertificateDTO)JsonMapper.generateObjectFromJSON(message,clientCertificateDTO);
+        this.clientCertificate = ClientCertificate.generateCertificateFromRepresentation(clientCertificateDTO);
 
 //        U checks C(U) by checking B's signature using it's public key
-//        bPublicKey = JSON_object['Kb']
-//        bSignature = JSON_object['signature']
-//        bSignedMessage = JSON_object['signedMessage']
-//        if CryptoUtils.verify(signedMessage, bSignature, bPublicKey) == False
+//        TODO create certificate based of representation + a public key object from a string
+//        if(CryptoUtils.verify(this.clientCertificate.getMessage(), this.clientCertificate.getSignature(),
+//                clientCertificateDTO.getKb()) == False)
 //          throw new SignatureException("The certificate provided by broker is not authentic!");
-        return new ClientCertificate();
     }
 
     public CommunicationChannel connectWithVendor(int vendorPort){
@@ -95,26 +97,26 @@ public class Client {
         return commitments.getOrDefault(vendorPort, null);
     }
 
-    Commitment negotiateNewCommitment(int vendorPort) {
-        List<HashChain> chains = new ArrayList<>();
-        HashChain chain = new HashChain(100);
-        chains.add(chain);
-        Commitment commit = Commitment.generateCommitment(vendorPort, clientCertificate, chain.getC0(),
-                new Date(), " ");
-        hashChains.put(commit, chains);
-        commitments.put(vendorPort, commit);
-        return commit;
-    }
+//    Commitment negotiateNewCommitment(int vendorPort) {
+//        List<HashChain> chains = new ArrayList<>();
+//        HashChain chain = new HashChain(100);
+//        chains.add(chain);
+//        Commitment commit = Commitment.generateCommitment(vendorPort, this.clientCertificate, chain.getC0(),
+//                new Date(), " ");
+//        hashChains.put(commit, chains);
+//        commitments.put(vendorPort, commit);
+//        return commit;
+//    }
 
-    void orderProduct() {
-        Commitment c = hasValidCommitment(1);
-        List<HashChain> l;
-        if (c != null) {
-            l = hashChains.get(c);
-        }
-        else {
-            l = hashChains.get(negotiateNewCommitment(1));
-        }
-        new ProductConsumer(communicationChannel, "1",  l);
-    }
+//    void orderProduct() {
+//        Commitment c = hasValidCommitment(1);
+//        List<HashChain> l;
+//        if (c != null) {
+//            l = hashChains.get(c);
+//        }
+//        else {
+//            l = hashChains.get(negotiateNewCommitment(1));
+//        }
+//        new ProductConsumer(communicationChannel, "1",  l);
+//    }
 }

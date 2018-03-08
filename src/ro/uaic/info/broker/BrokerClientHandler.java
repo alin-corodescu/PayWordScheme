@@ -1,9 +1,11 @@
 package ro.uaic.info.broker;
 
+import ro.uaic.info.DTO.ClientCertificateDTO;
+import ro.uaic.info.DTO.ClientInformationDTO;
 import ro.uaic.info.communication.ClientHandler;
 import ro.uaic.info.communication.CommunicationChannel;
 import ro.uaic.info.communication.SocketCommunicationChannel;
-import ro.uaic.info.crypto.ClientCertificateRepresentation;
+import ro.uaic.info.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -27,42 +29,43 @@ public class BrokerClientHandler implements ClientHandler {
     @Override
     public void handleClient(Socket socket) {
         try {
+            System.out.println("Broker Client Handler got a request from an unknown source!");
             CommunicationChannel channel = new SocketCommunicationChannel(socket);
             String message = channel.readMessage();
 
-//            TODO JSON
-//            JSON_obj = JSON(message)
-
 //            Use case: client
-//            if JSON_obj.identity == 'client':
-//            message = this.clientRegistrationResponse(JSON_obj);
-             this.clientRegistrationResponse(message);
-            channel.writeMessage(message);
+            if(message.equals("client")) {
+                System.out.println("Broker Client Handler received a message from a client!");
+                message = channel.readMessage();
+                ClientInformationDTO clientInformationDTO = new ClientInformationDTO();
+                clientInformationDTO = (ClientInformationDTO) JsonMapper.generateObjectFromJSON(message, clientInformationDTO);
 
-//            Use case: vendor
-//            add logic here
-            System.out.println(message);
+                System.out.println("Broker Client Handler sending certificate to client!");
+                ClientCertificateDTO clientCertificateDTO = this.clientRegistrationResponse(clientInformationDTO);
+                message = JsonMapper.generateJsonFromDTO(clientCertificateDTO);
+                channel.writeMessage(message);
+            }
 
+            if(message.equals("vendor")) {
+                System.out.println("Broker Client Handler received a message from a vendor!");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-//    The parameter will be changed to a JSON_Object type in order to gather all information
-//    We have the brokers identity and public key
-//    We need to also get the identity and public key of the user
-    private ClientCertificateRepresentation clientRegistrationResponse(String json_response){
-        ClientCertificateRepresentation clientCertificateRepresentation = new ClientCertificateRepresentation();
+    private ClientCertificateDTO clientRegistrationResponse(ClientInformationDTO clientInformationDTO){
+        ClientCertificateDTO clientCertificateDTO = new ClientCertificateDTO();
 
-        clientCertificateRepresentation.setB(this.brokerIdentity);
-        clientCertificateRepresentation.setKb(this.brokerPublicKey.toString());
-        clientCertificateRepresentation.setExp(getExpirationDate());
+        clientCertificateDTO.setB(this.brokerIdentity);
+        clientCertificateDTO.setKb(this.brokerPublicKey.toString());
+        clientCertificateDTO.setExp(getExpirationDate());
 
-
-//        clientCertificateRepresentation.setU(json_response['U']);
-//        clientCertificateRepresentation.setKu(json_response['Ku']);
-//        clientCertificateRepresentation.setIPu(json_response['IPu']);
-        return clientCertificateRepresentation;
+        clientCertificateDTO.setU(clientInformationDTO.getClientIdentity());
+        clientCertificateDTO.setKu(clientInformationDTO.getClientKey());
+        clientCertificateDTO.setIPu("ip");
+        clientCertificateDTO.setInfo("info");
+        return clientCertificateDTO;
     }
 
     private Date getExpirationDate(){

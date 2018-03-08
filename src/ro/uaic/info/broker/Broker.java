@@ -21,18 +21,20 @@ public class Broker {
 
     public static void main(String[] args) {
 //        Wait for a connection
-        new Broker().run();
+        try {
+            new Broker().run();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private void run() {
-        ClientHandler clientHandler = new BrokerClientHandler(database,keyPair.getPublic(),identity);
+    private void run() throws Exception {
+        this.database = new MemoryAccountDatabase();
+        this.keyPair = CryptoUtils.generateKeyPair();
+        this.identity = "Broker";
+        ClientHandler clientHandler = new BrokerClientHandler(database, keyPair.getPublic(),identity);
         server = new Server(clientHandler, SERVER_PORT);
         server.start();
     }
 
-    private void Broker() throws Exception {
-        this.database = new MemoryAccountDatabase();
-        this.keyPair = CryptoUtils.generateKeyPair();
-        this.identity = "broker";
-    }
 }
