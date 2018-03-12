@@ -18,7 +18,7 @@ public class Server {
     /**
      * Starts listening for incoming connections
      */
-    public void start() {
+    public void start() throws Exception {
 //    When a new connection comes, handlerFactory.create();
         try {
             ServerSocket serverSocket = new ServerSocket(port);

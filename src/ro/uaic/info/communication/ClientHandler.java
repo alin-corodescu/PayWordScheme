@@ -13,5 +13,5 @@ public interface ClientHandler {
      * @param socket
      * https://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
      */
-    void handleClient(Socket socket);
+    void handleClient(Socket socket) throws Exception;
 }

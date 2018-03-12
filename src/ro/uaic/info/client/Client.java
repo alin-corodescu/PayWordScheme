@@ -56,7 +56,7 @@ public class Client {
         this.identity = "Client";
     }
 
-    private void registerWithBroker(int port) throws IOException, SignatureException {
+    private void registerWithBroker(int port) throws Exception {
         Socket socket = new Socket("localhost",port);
         this.communicationChannel = new SocketCommunicationChannel(socket);
 
@@ -76,6 +76,13 @@ public class Client {
         ClientCertificateDTO clientCertificateDTO = new ClientCertificateDTO();
         clientCertificateDTO = (ClientCertificateDTO)JsonMapper.generateObjectFromJSON(message,clientCertificateDTO);
         this.clientCertificate = ClientCertificate.generateCertificateFromRepresentation(clientCertificateDTO);
+
+        System.out.println("Checking the bank's identity");
+        String signature = this.communicationChannel.readMessage();
+        if (CryptoUtils.verify(message, signature, CryptoUtils.getKeyFromBase64(clientCertificateDTO.getKb())))
+            System.out.println("The bank's identity is valid");
+        else
+            System.out.println("The bank cannot be trusted");
 
 //        U checks C(U) by checking B's signature using it's public key
 //        TODO create certificate based of representation + a public key object from a string

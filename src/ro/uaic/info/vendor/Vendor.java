@@ -15,12 +15,12 @@ public class Vendor {
 
     private Server server;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 //        Wait for a connection
         new Vendor().run();
     }
 
-    private void run() {
+    private void run() throws Exception {
         ClientHandler clientHandler = new VendorClientHandler();
         server = new Server(clientHandler, SERVER_PORT);
         server.start();

@@ -32,7 +32,7 @@ public class Broker {
         this.database = new MemoryAccountDatabase();
         this.keyPair = CryptoUtils.generateKeyPair();
         this.identity = "Broker";
-        ClientHandler clientHandler = new BrokerClientHandler(database, keyPair.getPublic(),identity);
+        ClientHandler clientHandler = new BrokerClientHandler(database, keyPair.getPrivate(), keyPair.getPublic(),identity);
         server = new Server(clientHandler, SERVER_PORT);
         server.start();
     }

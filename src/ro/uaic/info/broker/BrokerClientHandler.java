@@ -5,11 +5,14 @@ import ro.uaic.info.DTO.ClientInformationDTO;
 import ro.uaic.info.communication.ClientHandler;
 import ro.uaic.info.communication.CommunicationChannel;
 import ro.uaic.info.communication.SocketCommunicationChannel;
+import ro.uaic.info.crypto.CryptoUtils;
 import ro.uaic.info.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -18,16 +21,18 @@ import java.util.Date;
  */
 public class BrokerClientHandler implements ClientHandler {
     private AccountDatabase brokerDatabase;
-    private Key brokerPublicKey;
+    private PublicKey brokerPublicKey;
+    private PrivateKey brokerPrivateKey;
     private String brokerIdentity;
-    public BrokerClientHandler(AccountDatabase brokerDatabase, Key brokerPublicKey, String brokerIdentity) {
+    public BrokerClientHandler(AccountDatabase brokerDatabase, PrivateKey brokerPrivateKey, PublicKey brokerPublicKey, String brokerIdentity) {
         this.brokerDatabase = brokerDatabase;
         this.brokerPublicKey = brokerPublicKey;
         this.brokerIdentity = brokerIdentity;
+        this.brokerPrivateKey = brokerPrivateKey;
     }
 
     @Override
-    public void handleClient(Socket socket) {
+    public void handleClient(Socket socket) throws Exception {
         try {
             System.out.println("Broker Client Handler got a request from an unknown source!");
             CommunicationChannel channel = new SocketCommunicationChannel(socket);
@@ -43,7 +48,9 @@ public class BrokerClientHandler implements ClientHandler {
                 System.out.println("Broker Client Handler sending certificate to client!");
                 ClientCertificateDTO clientCertificateDTO = this.clientRegistrationResponse(clientInformationDTO);
                 message = JsonMapper.generateJsonFromDTO(clientCertificateDTO);
+                String signature = CryptoUtils.sign(message, brokerPrivateKey);
                 channel.writeMessage(message);
+                channel.writeMessage(signature);
             }
 
             if(message.equals("vendor")) {
@@ -58,7 +65,7 @@ public class BrokerClientHandler implements ClientHandler {
         ClientCertificateDTO clientCertificateDTO = new ClientCertificateDTO();
 
         clientCertificateDTO.setB(this.brokerIdentity);
-        clientCertificateDTO.setKb(this.brokerPublicKey.toString());
+        clientCertificateDTO.setKb(CryptoUtils.getBase64FromKey(this.brokerPublicKey));
         clientCertificateDTO.setExp(getExpirationDate());
 
         clientCertificateDTO.setU(clientInformationDTO.getClientIdentity());
