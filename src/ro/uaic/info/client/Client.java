@@ -2,6 +2,7 @@ package ro.uaic.info.client;
 
 import ro.uaic.info.DTO.ClientCertificateDTO;
 import ro.uaic.info.DTO.ClientInformationDTO;
+import ro.uaic.info.DTO.CommitmentDTO;
 import ro.uaic.info.communication.CommunicationChannel;
 import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.*;
@@ -12,6 +13,9 @@ import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.SignatureException;
+import java.sql.Date;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +52,34 @@ public class Client {
 
         CommunicationChannel channel = connectWithVendor(VendorPort);
 //        Logica de a cumpara ceva de la vendor
+//        int productNumber = Integer.valueOf(args[1]);
+//        System.out.println("Clients intends to buy product number " + args[1]);
+        channel.writeMessage("1");
+        // now lets generate a commitment
+        String price = channel.readMessage();
+        CommitmentDTO commitmentDTO = new CommitmentDTO();
+        commitmentDTO.setClientCertificateString(clientCertificate.getMessage());
+        commitmentDTO.setClientCertSignature(clientCertificate.getSignature());
+        commitmentDTO.setD(Date.from(Instant.now()));
+        commitmentDTO.setV("vendor");
+        List<String> chainRoots = new ArrayList<>();
+        chainRoots.add("hello");
+        List<Integer> chainValues = new ArrayList<>();
+        chainValues.add(1);
+
+        List<Integer> chainLengths = new ArrayList<>();
+        chainValues.add(1);
+
+        commitmentDTO.setChainRoots(chainRoots);
+        commitmentDTO.setChainLengths(chainLengths);
+        commitmentDTO.setChainValues(chainValues);
+
+
+        String json = JsonMapper.generateJsonFromDTO(commitmentDTO);
+        channel.writeMessage(json);
+        channel.writeMessage(CryptoUtils.sign(json, keyPair.getPrivate()));
+
+        Thread.sleep(600000);
 
     }
 
@@ -73,8 +105,7 @@ public class Client {
 //        B sends to U certificate C(U) for U to present it to the vendor when making a purchase
         System.out.println("Client is receiving certificate from broker!");
         message = this.communicationChannel.readMessage();
-        ClientCertificateDTO clientCertificateDTO = new ClientCertificateDTO();
-        clientCertificateDTO = (ClientCertificateDTO)JsonMapper.generateObjectFromJSON(message,clientCertificateDTO);
+        ClientCertificateDTO clientCertificateDTO = (ClientCertificateDTO)JsonMapper.generateObjectFromJSON(message, ClientCertificateDTO.class);
 
 
         System.out.println("Checking the bank's identity");
@@ -93,8 +124,9 @@ public class Client {
 
     }
 
-    public CommunicationChannel connectWithVendor(int vendorPort){
-        return new SocketCommunicationChannel();
+    public CommunicationChannel connectWithVendor(int vendorPort) throws IOException {
+        Socket socket = new Socket("localhost", vendorPort);
+        return new SocketCommunicationChannel(socket);
     }
 
     private void generateHashChain(){

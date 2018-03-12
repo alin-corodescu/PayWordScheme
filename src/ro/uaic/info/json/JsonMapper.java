@@ -21,10 +21,10 @@ public class JsonMapper {
         }
         return response;
     }
-    public static Object generateObjectFromJSON(String jsonString, Object targetObject){
+    public static Object generateObjectFromJSON(String jsonString, Class<?> clazz){
         Object object = null;
         try {
-            object = objectMapper.readValue(jsonString, targetObject.getClass());
+            object = objectMapper.readValue(jsonString, clazz);
         } catch (IOException e) {
             e.printStackTrace();
         }

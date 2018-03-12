@@ -42,8 +42,8 @@ public class BrokerClientHandler implements ClientHandler {
             if(message.equals("client")) {
                 System.out.println("Broker Client Handler received a message from a client!");
                 message = channel.readMessage();
-                ClientInformationDTO clientInformationDTO = new ClientInformationDTO();
-                clientInformationDTO = (ClientInformationDTO) JsonMapper.generateObjectFromJSON(message, clientInformationDTO);
+                ClientInformationDTO clientInformationDTO =
+                        (ClientInformationDTO) JsonMapper.generateObjectFromJSON(message, ClientInformationDTO.class);
 
                 System.out.println("Broker Client Handler sending certificate to client!");
                 ClientCertificateDTO clientCertificateDTO = this.clientRegistrationResponse(clientInformationDTO);
