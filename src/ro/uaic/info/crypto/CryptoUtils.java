@@ -71,4 +71,10 @@ public class CryptoUtils {
 
         return publicSignature.verify(signatureBytes);
     }
+
+    public static String generateHash(String payword) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(payword.getBytes());
+        return new String(Base64.getEncoder().encode(md.digest()));
+    }
 }

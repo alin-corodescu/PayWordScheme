@@ -12,12 +12,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.security.Key;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.sql.Date;
+import java.util.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -31,9 +29,9 @@ public class Client {
     private static final int BrokerPort = 4321;
     private static final int VendorPort = 4322;
 //    This map stores the commitments for each VENDOR
-    private Map<Integer, Commitment> commitments;
+    private Map<String, CommitmentDTO> commitments = new HashMap<>();
 //    This map stores the HashChains for each commmitment
-    private Map<Commitment, List<HashChain>> hashChains;
+    private Map<CommitmentDTO, List<HashChain>> hashChains = new HashMap<>();
 
     public static void main(String[] args) {
         // in functie de parametri
@@ -54,33 +52,66 @@ public class Client {
 //        Logica de a cumpara ceva de la vendor
 //        int productNumber = Integer.valueOf(args[1]);
 //        System.out.println("Clients intends to buy product number " + args[1]);
-        channel.writeMessage("1");
-        // now lets generate a commitment
-        String price = channel.readMessage();
-        CommitmentDTO commitmentDTO = new CommitmentDTO();
-        commitmentDTO.setClientCertificateString(clientCertificate.getMessage());
-        commitmentDTO.setClientCertSignature(clientCertificate.getSignature());
-        commitmentDTO.setD(Date.from(Instant.now()));
-        commitmentDTO.setV("vendor");
-        List<String> chainRoots = new ArrayList<>();
-        chainRoots.add("hello");
-        List<Integer> chainValues = new ArrayList<>();
-        chainValues.add(1);
+        for (int i = 1; i <= 2; i++) {
+            channel.writeMessage(String.valueOf(i));
+            // now lets generate a commitment
+            int price = Integer.valueOf(channel.readMessage());
+            boolean alreadNegotiated = commitments.containsKey("vendor");
+            if (alreadNegotiated) {
+                System.out.println("Already negotiated with this vendor");
+                channel.writeMessage("existing commitment");
+                channel.writeMessage(clientCertificate.getRepresentation().getU());
+            }
 
-        List<Integer> chainLengths = new ArrayList<>();
-        chainValues.add(1);
-
-        commitmentDTO.setChainRoots(chainRoots);
-        commitmentDTO.setChainLengths(chainLengths);
-        commitmentDTO.setChainValues(chainValues);
+            CommitmentDTO commitmentDTO = getCommitmentForVendor("vendor");
+            if (!alreadNegotiated) {
+                String json = JsonMapper.generateJsonFromDTO(commitmentDTO);
+                channel.writeMessage(json);
+                channel.writeMessage(CryptoUtils.sign(json, keyPair.getPrivate()));
+            }
 
 
-        String json = JsonMapper.generateJsonFromDTO(commitmentDTO);
-        channel.writeMessage(json);
-        channel.writeMessage(CryptoUtils.sign(json, keyPair.getPrivate()));
+            List<HashChain> chains = hashChains.get(commitmentDTO);
 
+            HashChain chain = chains.get(2);
+            int paywordCount = price / 10;
+            price -= 10 * paywordCount;
+            String payword = chain.getPaywordForSteps(paywordCount);
+//            Send paywordCount payments of 10
+            if (paywordCount != 0) {
+                System.out.println("Sending out " + paywordCount + " payments of 10");
+                channel.writeMessage(payword);
+                channel.writeMessage("2");
+                channel.writeMessage(String.valueOf(paywordCount));
+            }
+
+            chain = chains.get(1);
+            paywordCount = price / 5;
+
+            price -= 5 * paywordCount;
+            payword = chain.getPaywordForSteps(paywordCount);
+            if (paywordCount != 0) {
+                System.out.println("Sending out " + paywordCount + " payments of 5");
+//            Send paywordCount payments of 5
+                channel.writeMessage(payword);
+                channel.writeMessage("1");
+                channel.writeMessage(String.valueOf(paywordCount));
+            }
+
+            chain = chains.get(0);
+            paywordCount = price;
+
+            price = 0;
+            payword = chain.getPaywordForSteps(paywordCount);
+            if (paywordCount != 0) {
+                System.out.println("Sending out " + paywordCount + " payments of 1");
+//            Send paywordCount payments of 1
+                channel.writeMessage(payword);
+                channel.writeMessage("0");
+                channel.writeMessage(String.valueOf(paywordCount));
+            }
+        }
         Thread.sleep(600000);
-
     }
 
     private void InitializeClientData() throws Exception {
@@ -129,36 +160,50 @@ public class Client {
         return new SocketCommunicationChannel(socket);
     }
 
-    private void generateHashChain(){
+
+    public CommitmentDTO getCommitmentForVendor(String vendor) throws NoSuchAlgorithmException {
+    // todo check if the commitment is still valid
+    // todo if the date is invalid, remove the element from the map
+        if (commitments.containsKey(vendor)) {
+            return commitments.get(vendor);
+        }
+
+        CommitmentDTO commitmentDTO = new CommitmentDTO();
+        commitmentDTO.setClientCertificateString(clientCertificate.getMessage());
+        commitmentDTO.setClientCertSignature(clientCertificate.getSignature());
+
+        Date currentDate = new java.util.Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(currentDate);
+        c.add(Calendar.MINUTE, 2);
+        currentDate = c.getTime();
+
+        commitmentDTO.setD(currentDate);
+        commitmentDTO.setV(vendor);
+
+        List<String> chainRoots = new ArrayList<>();
+        List<Integer> chainValues = new ArrayList<>();
+        List<Integer> chainLengths = new ArrayList<>();
+
+        List<HashChain> hcs = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            HashChain hc = new HashChain(10);
+            hcs.add(hc);
+            chainRoots.add(hc.getC0());
+            chainLengths.add(10);
+        }
+        chainValues.add(1);
+        chainValues.add(5);
+        chainValues.add(10);
+
+        commitmentDTO.setChainRoots(chainRoots);
+        commitmentDTO.setChainLengths(chainLengths);
+        commitmentDTO.setChainValues(chainValues);
+
+        commitments.put(vendor, commitmentDTO);
+        hashChains.put(commitmentDTO, hcs);
+        return commitmentDTO;
 
     }
 
-    public Commitment hasValidCommitment(int vendorPort) {
-// todo check if the commitment is still valid
-//        todo if the date is invalid, remove the element from the map
-        return commitments.getOrDefault(vendorPort, null);
-    }
-
-//    Commitment negotiateNewCommitment(int vendorPort) {
-//        List<HashChain> chains = new ArrayList<>();
-//        HashChain chain = new HashChain(100);
-//        chains.add(chain);
-//        Commitment commit = Commitment.generateCommitment(vendorPort, this.clientCertificate, chain.getC0(),
-//                new Date(), " ");
-//        hashChains.put(commit, chains);
-//        commitments.put(vendorPort, commit);
-//        return commit;
-//    }
-
-//    void orderProduct() {
-//        Commitment c = hasValidCommitment(1);
-//        List<HashChain> l;
-//        if (c != null) {
-//            l = hashChains.get(c);
-//        }
-//        else {
-//            l = hashChains.get(negotiateNewCommitment(1));
-//        }
-//        new ProductConsumer(communicationChannel, "1",  l);
-//    }
 }
