@@ -9,11 +9,11 @@ import java.util.Base64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CryptoUtils {
-    public String getBase64FromKey(PublicKey key) {
+    public static String getBase64FromKey(PublicKey key) {
         return new String(Base64.getEncoder().encode(key.getEncoded()));
     }
 
-    public PublicKey getKeyFromBase64(String key) {
+    public static PublicKey getKeyFromBase64(String key) {
         byte[] keyBytes = Base64.getDecoder().decode(key);
         X509EncodedKeySpec pk = new X509EncodedKeySpec(keyBytes);
 

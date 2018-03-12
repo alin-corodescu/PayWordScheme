@@ -19,9 +19,6 @@ public class JsonMapper {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        if (response != null) {
-            response = Integer.toString(response.getBytes().length) + response;
-        }
         return response;
     }
     public static Object generateObjectFromJSON(String jsonString, Object targetObject){

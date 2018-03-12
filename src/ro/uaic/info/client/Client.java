@@ -61,11 +61,12 @@ public class Client {
         this.communicationChannel = new SocketCommunicationChannel(socket);
 
 //        U sends information to B to inform him that he is a user
-        this.communicationChannel.writeMessage(" client");
+        this.communicationChannel.writeMessage("client");
 
 //        U sends personal information to B
         System.out.println("Client is sending personal information to broker!");
-        ClientInformationDTO clientInformationDTO = new ClientInformationDTO(this.keyPair.getPublic().toString(), this.identity);
+//        ClientInformationDTO clientInformationDTO = new ClientInformationDTO(this.keyPair.getPublic().toString(), this.identity);
+        ClientInformationDTO clientInformationDTO = new ClientInformationDTO(CryptoUtils.getBase64FromKey(keyPair.getPublic()), this.identity);
         String message = JsonMapper.generateJsonFromDTO(clientInformationDTO);
         this.communicationChannel.writeMessage(message);
 
