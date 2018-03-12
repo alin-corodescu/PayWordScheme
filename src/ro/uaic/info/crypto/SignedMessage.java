@@ -5,5 +5,11 @@ package ro.uaic.info.crypto;
  */
 public class SignedMessage {
     protected String message;
+
+    public SignedMessage(String message, String signature) {
+        this.message = message;
+        this.signature = signature;
+    }
+
     protected String signature;
 }

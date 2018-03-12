@@ -9,20 +9,13 @@ import ro.uaic.info.DTO.ClientCertificateDTO;
  */
 public class ClientCertificate extends SignedMessage{
 
-//    Constructor pentru cazul B -> U : C(U). Broker-side
-    public static ClientCertificate generateCertificateFromRepresentation(ClientCertificateDTO representation) {
-        ClientCertificate certificate = new ClientCertificate();
+//    Best method of storing individual fields - do not try this at home
+    private ClientCertificateDTO representation = null;
 
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            certificate.message = mapper.writeValueAsString(representation);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        certificate.signature = certificate.message;
-
-        return certificate;
+    public ClientCertificate(String message, String signature) {
+        super(message, signature);
     }
+
 
     public void setMessage(String message) {
         this.message = message;
@@ -42,4 +35,11 @@ public class ClientCertificate extends SignedMessage{
     }
 
 
+    public ClientCertificateDTO getRepresentation() {
+        return representation;
+    }
+
+    public void setRepresentation(ClientCertificateDTO representation) {
+        this.representation = representation;
+    }
 }

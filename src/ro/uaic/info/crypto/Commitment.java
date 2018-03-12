@@ -9,9 +9,13 @@ import java.util.Date;
  */
 public class Commitment extends SignedMessage {
 
+    public Commitment(String message, String signature) {
+        super(message, signature);
+    }
+
     public static Commitment generateCommitment(int vendorId, ClientCertificate certificate,
                                                 String c0, Date d, String info) {
-        return new Commitment();
+        return new Commitment("bla", "bla");
     }
 
 }
