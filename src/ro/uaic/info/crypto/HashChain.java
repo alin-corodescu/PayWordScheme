@@ -35,7 +35,7 @@ public class HashChain {
 
     public String getPaywordForSteps(int paywordCount) {
         String result = paywords[nextIndex + paywordCount];
-        nextIndex += paywordCount + 1;
+        nextIndex += paywordCount;
         return result;
 
     }
