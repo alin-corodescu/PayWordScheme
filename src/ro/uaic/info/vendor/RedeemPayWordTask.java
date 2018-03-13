@@ -45,9 +45,10 @@ class RedeemPayWordTask extends TimerTask {
                 String message = "vendor";
                 this.communicationChannel.writeMessage(message);
 
-                CommitmentDTO commitmentDTO = commitment.getRepresentation();
-                message = JsonMapper.generateJsonFromDTO(commitmentDTO);
-                this.communicationChannel.writeMessage(message);
+//                this.communicationChannel.writeMessage(commitment.getMessage());
+//                FIXME
+                this.communicationChannel.writeMessage(commitment.getMessage() + " ");
+                this.communicationChannel.writeMessage(commitment.getSignature());
 
 
                 CurrentPaymentsDTO currentPaymentsDTO = new CurrentPaymentsDTO(commitment.getLastPaywords(),

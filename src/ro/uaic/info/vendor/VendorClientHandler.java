@@ -73,6 +73,10 @@ public class VendorClientHandler implements ClientHandler {
                 sum += commitment.getRepresentation().getChainValues().get(index) * steps;
                 System.out.println("Balance is now " + (price - sum));
             }
+            else{
+                System.out.println("Payword is corrupted!");
+                System.exit(16);
+            }
         }
     }
 

@@ -25,6 +25,14 @@ public class Commitment extends SignedMessage {
         super(message, signature);
     }
 
+    public String getMessage(){
+        return message;
+    }
+
+    public String getSignature(){
+        return signature;
+    }
+
     public static Commitment generateCommitment(String message, String signature) {
         return new Commitment(message, signature);
     }

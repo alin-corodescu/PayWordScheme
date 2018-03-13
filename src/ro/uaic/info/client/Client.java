@@ -68,6 +68,8 @@ public class Client {
             if (!alreadNegotiated) {
                 String json = JsonMapper.generateJsonFromDTO(commitmentDTO);
                 channel.writeMessage(json);
+//                FIXME
+//                channel.writeMessage(json + " ");
                 channel.writeMessage(CryptoUtils.sign(json, keyPair.getPrivate()));
             }
 
@@ -82,6 +84,8 @@ public class Client {
             if (paywordCount != 0) {
                 System.out.println("Sending out " + paywordCount + " payments of 10");
                 channel.writeMessage(payword);
+//                FIXME
+//                channel.writeMessage(payword + " ");
                 channel.writeMessage("2");
                 channel.writeMessage(String.valueOf(paywordCount));
             }
@@ -145,6 +149,9 @@ public class Client {
 
         this.clientCertificate = new ClientCertificate(message, signature);
         clientCertificate.setRepresentation(clientCertificateDTO);
+
+//        FIXME
+//        message = message + ' ';
 
         if (CryptoUtils.verify(message, signature, CryptoUtils.getKeyFromBase64(clientCertificateDTO.getKb()))
                 && clientCertificateDTO.getKu().equals(CryptoUtils.getBase64FromKey(keyPair.getPublic())))

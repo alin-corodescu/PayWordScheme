@@ -2,11 +2,6 @@ package ro.uaic.info.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
-import ro.uaic.info.DTO.ClientCertificateDTO;
-import ro.uaic.info.DTO.ClientInformationDTO;
-
 import java.io.IOException;
 
 

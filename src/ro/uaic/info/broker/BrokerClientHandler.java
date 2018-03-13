@@ -79,12 +79,12 @@ public class BrokerClientHandler implements ClientHandler {
 
                 ClientCertificateDTO clientCertificateDTO = (ClientCertificateDTO) JsonMapper.generateObjectFromJSON(commitmentDTO.getClientCertificateString(), ClientCertificateDTO.class);
 
-//                TODO get client signature without requesting it from a channel
-                String signature = commitmentDTO.getClientCertSignature();
+                String signature = channel.readMessage();
                 if (CryptoUtils.verify(message, signature, CryptoUtils.getKeyFromBase64(clientCertificateDTO.getKu())))
                     System.out.println("Customer signature is valid");
                 else {
                     System.out.println("Customer signature is invalid");
+                    System.exit(13);
                 }
 
                 if (CryptoUtils.verify(commitmentDTO.getClientCertificateString(), commitmentDTO.getClientCertSignature(), this.brokerPublicKey))
