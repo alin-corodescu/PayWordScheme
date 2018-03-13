@@ -11,9 +11,6 @@ import ro.uaic.info.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Map;
 import java.util.TimerTask;
 
 class RedeemPayWordTask extends TimerTask {
@@ -56,10 +53,13 @@ class RedeemPayWordTask extends TimerTask {
 
                 if(message.equalsIgnoreCase("True")){
                     System.out.println("Waiting for broker money!");
+                    message = communicationChannel.readMessage();
+                    System.out.println("Recieved " + message + " cents!");
                 }
                 else{
                     System.out.println("PayWord Redeem was denied!");
                 }
+//                System.exit(15);
 
             }
         } catch (IOException e) {

@@ -85,6 +85,7 @@ public class Client {
                 channel.writeMessage(String.valueOf(paywordCount));
             }
 
+
             chain = chains.get(1);
             paywordCount = price / 5;
 

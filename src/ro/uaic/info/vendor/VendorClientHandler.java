@@ -68,12 +68,10 @@ public class VendorClientHandler implements ClientHandler {
             int index = Integer.valueOf(channel.readMessage());
 //                How many steps did we skip? 1 = the next payword
             int steps = Integer.valueOf(channel.readMessage());
-
-            System.out.println("1" + commitment.getRepresentation().getChainRoots());
             if (commitment.processPayword(payword, index, steps)) {
-//                System.out.println("Got the payment from chain " + index + " with " + steps + " steps");
+                System.out.println("Got the payment from chain " + index + " with " + steps + " steps");
                 sum += commitment.getRepresentation().getChainValues().get(index) * steps;
-//                System.out.println("Balance is now " + (price - sum));
+                System.out.println("Balance is now " + (price - sum));
             }
         }
     }

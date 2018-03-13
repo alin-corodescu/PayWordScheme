@@ -77,11 +77,4 @@ public class CryptoUtils {
         md.update(payword.getBytes());
         return new String(Base64.getEncoder().encode(md.digest()));
     }
-
-    public static boolean checkHash(String rootHash, String currentHash, int steps) throws NoSuchAlgorithmException {
-        for (int i = 0; i < steps; i++) {
-            rootHash = CryptoUtils.generateHash(rootHash);
-        }
-        return rootHash.equals(currentHash);
-    }
 }

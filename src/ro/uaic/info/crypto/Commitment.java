@@ -63,9 +63,7 @@ public class Commitment extends SignedMessage {
             payword = CryptoUtils.generateHash(payword);
         }
         if (paywordToCheckAgainst.equals(payword)) {
-            System.out.println("2" + this.representation.getChainRoots());
             lastPaywords.set(index, paywordCopy);
-            System.out.println("3" + this.representation.getChainRoots());
             usedPaywords.set(index, usedPaywords.get(index) + steps);
             return true;
         }
