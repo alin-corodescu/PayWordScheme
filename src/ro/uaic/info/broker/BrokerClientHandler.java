@@ -11,6 +11,7 @@ import ro.uaic.info.communication.DataTransformer;
 import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.ClientCertificate;
 import ro.uaic.info.crypto.CryptoUtils;
+import ro.uaic.info.crypto.HashChain;
 import ro.uaic.info.json.JsonMapper;
 
 import javax.crypto.BadPaddingException;
@@ -23,6 +24,10 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.*;
 
 /**
  * Created by alin on 3/7/18.
@@ -32,12 +37,14 @@ public class BrokerClientHandler implements ClientHandler {
     private PublicKey brokerPublicKey;
     private PrivateKey brokerPrivateKey;
     private String brokerIdentity;
+    private Map<Integer,List<String>> previousHashChains;
 
     public BrokerClientHandler(AccountDatabase brokerDatabase, PrivateKey brokerPrivateKey, PublicKey brokerPublicKey, String brokerIdentity) {
         this.brokerDatabase = brokerDatabase;
         this.brokerPublicKey = brokerPublicKey;
         this.brokerIdentity = brokerIdentity;
         this.brokerPrivateKey = brokerPrivateKey;
+        this.previousHashChains = new HashMap<>();
     }
 
     @Override
@@ -93,21 +100,25 @@ public class BrokerClientHandler implements ClientHandler {
                 List<String> lastPayWords = currentPaymentsDTO.getLastPaywords();
                 List<Integer> usedPayWords = currentPaymentsDTO.getUsedPaywords();
                 List<String> chainRoots = commitmentDTO.getChainRoots();
-                System.out.println(lastPayWords);
-                System.out.println(usedPayWords);
-                System.out.println(chainRoots);
+                int sum = 0;
+
                 for (int i = 0; i < lastPayWords.size(); i++) {
+                    String currentHash = lastPayWords.get(i);
                     String rootHash = chainRoots.get(i);
-                    if (CryptoUtils.checkHash(rootHash, lastPayWords.get(i), usedPayWords.get(i))) {
-                        System.out.println("Hash " + i + "  matched!");
+                    int steps = usedPayWords.get(i) - 1;
+                    for (int j = 0; j < steps; j++) { currentHash = CryptoUtils.generateHash(currentHash);}
+                    if(currentHash.equals(rootHash) && checkPreviousHashValues(i,currentHash)) {
+                        System.out.println("Hash " + i + " matched!");
+                        sum += steps * commitmentDTO.getChainValues().get(i);
                     } else {
-                        System.out.println("Hash " + i + " did NOT matched!");
+                        System.out.println("Vendor hash chain was rejected!");
                         response = false;
                     }
                 }
                 channel.writeMessage(response.toString());
                 if (response) {
-                    System.out.println("Sending money to vendor!");
+                    System.out.println("PayWord Redeem has been granted!\nSending " + sum + " cents!");
+                    channel.writeMessage(String.valueOf(sum));
                 }
                 else{
                     System.out.println("Vendor request was denied!");
@@ -156,5 +167,17 @@ public class BrokerClientHandler implements ClientHandler {
         c.add(Calendar.MINUTE, 2);
         currentDate = c.getTime();
         return currentDate;
+    }
+
+    private boolean checkPreviousHashValues(int indexChain, String hashValue){
+        if(previousHashChains.containsKey(indexChain))
+            if(previousHashChains.get(indexChain).contains(hashValue)){
+                System.out.println("Attempt to send duplicate redeem request detected!");
+                return false;
+            }
+        List<String> hashValues = new ArrayList<>();
+        hashValues.add(hashValue);
+        previousHashChains.put(indexChain,hashValues);
+        return true;
     }
 }

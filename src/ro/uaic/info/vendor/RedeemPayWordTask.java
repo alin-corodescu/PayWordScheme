@@ -60,10 +60,13 @@ class RedeemPayWordTask extends TimerTask {
 
                 if(message.equalsIgnoreCase("True")){
                     System.out.println("Waiting for broker money!");
+                    message = communicationChannel.readMessage();
+                    System.out.println("Recieved " + message + " cents!");
                 }
                 else{
                     System.out.println("PayWord Redeem was denied!");
                 }
+//                System.exit(15);
 
             }
         } catch (IOException e) {
