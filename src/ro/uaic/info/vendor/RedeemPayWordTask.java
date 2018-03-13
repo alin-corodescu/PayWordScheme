@@ -9,8 +9,12 @@ import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.Commitment;
 import ro.uaic.info.json.JsonMapper;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +67,16 @@ class RedeemPayWordTask extends TimerTask {
 
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
             e.printStackTrace();
         }
 

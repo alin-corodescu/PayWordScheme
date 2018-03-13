@@ -7,16 +7,19 @@ import ro.uaic.info.DTO.CurrentPaymentsDTO;
 import ro.uaic.info.client.Client;
 import ro.uaic.info.communication.ClientHandler;
 import ro.uaic.info.communication.CommunicationChannel;
+import ro.uaic.info.communication.DataTransformer;
 import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.ClientCertificate;
 import ro.uaic.info.crypto.CryptoUtils;
 import ro.uaic.info.json.JsonMapper;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.Key;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +49,7 @@ public class BrokerClientHandler implements ClientHandler {
 
 //            Use case: client
             if (message.equals("client")) {
+                negotiateSecurityParams(channel);
                 System.out.println("Broker Client Handler received a message from a client!");
                 message = channel.readMessage();
                 ClientInformationDTO clientInformationDTO =
@@ -112,6 +116,23 @@ public class BrokerClientHandler implements ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void negotiateSecurityParams(CommunicationChannel channel) throws Exception {
+        //  get the client's pk
+        String clientPK = channel.readMessage();
+
+        PublicKey pk = CryptoUtils.getKeyFromBase64(clientPK);
+
+        Key k = CryptoUtils.generateSymmetricKey();
+//        Send the generated symmetric key
+        channel.writeMessage(CryptoUtils.encrypt(Base64.getEncoder().encodeToString(k.getEncoded()), pk));
+
+        DataTransformer inputTransformer = (input, length) -> CryptoUtils.symmetricEncrypt(new String(input), k.getEncoded()).getBytes();
+        DataTransformer outputTransformer = ((input, length) -> CryptoUtils.symmetricDecrypt(new String(input), k.getEncoded()).getBytes());
+
+        channel.withInputTransformer(inputTransformer);
+        channel.withOutputTransformer(outputTransformer);
     }
 
     private ClientCertificateDTO clientRegistrationResponse(ClientInformationDTO clientInformationDTO) {

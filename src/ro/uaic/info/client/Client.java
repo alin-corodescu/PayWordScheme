@@ -4,16 +4,17 @@ import ro.uaic.info.DTO.ClientCertificateDTO;
 import ro.uaic.info.DTO.ClientInformationDTO;
 import ro.uaic.info.DTO.CommitmentDTO;
 import ro.uaic.info.communication.CommunicationChannel;
+import ro.uaic.info.communication.DataTransformer;
 import ro.uaic.info.communication.SocketCommunicationChannel;
 import ro.uaic.info.crypto.*;
 import ro.uaic.info.json.JsonMapper;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
 import java.util.*;
 import java.time.Instant;
 
@@ -122,10 +123,9 @@ public class Client {
     private void registerWithBroker(int port) throws Exception {
         Socket socket = new Socket("localhost",port);
         this.communicationChannel = new SocketCommunicationChannel(socket);
-
 //        U sends information to B to inform him that he is a user
         this.communicationChannel.writeMessage("client");
-
+        negotiateSecurityParams(communicationChannel);
 //        U sends personal information to B
         System.out.println("Client is sending personal information to broker!");
 //        ClientInformationDTO clientInformationDTO = new ClientInformationDTO(this.keyPair.getPublic().toString(), this.identity);
@@ -153,6 +153,22 @@ public class Client {
             System.exit(13);
         }
 
+    }
+
+    private void negotiateSecurityParams(CommunicationChannel channel) throws Exception {
+        // send the public key via the channel
+        channel.writeMessage(CryptoUtils.getBase64FromKey(keyPair.getPublic()));
+
+        // read the symmetric key
+        String encryptedSymmetricKey = channel.readMessage();
+        String b64key = CryptoUtils.decrypt(encryptedSymmetricKey, keyPair.getPrivate());
+        final byte[] key = Base64.getDecoder().decode(b64key.getBytes());
+
+        DataTransformer inputTransformer = (input, length) -> CryptoUtils.symmetricEncrypt(new String(input), key).getBytes();
+        DataTransformer outputTransformer = ((input, length) -> CryptoUtils.symmetricDecrypt(new String(input), key).getBytes());
+
+        channel.withInputTransformer(inputTransformer);
+        channel.withOutputTransformer(outputTransformer);
     }
 
     public CommunicationChannel connectWithVendor(int vendorPort) throws IOException {

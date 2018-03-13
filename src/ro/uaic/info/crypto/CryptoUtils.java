@@ -1,6 +1,7 @@
 package ro.uaic.info.crypto;
 
-import javax.crypto.Cipher;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -43,6 +44,24 @@ public class CryptoUtils {
         return Base64.getEncoder().encodeToString(cipherText);
     }
 
+    public static String symmetricEncrypt(String plainText, byte[] key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher encryptCipher = Cipher.getInstance("AES");
+        SecretKeySpec k = new SecretKeySpec(key, "AES");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, k);
+        byte[] cipherText = encryptCipher.doFinal(plainText.getBytes());
+
+        return Base64.getEncoder().encodeToString(cipherText);
+    }
+
+    public static String symmetricDecrypt(String encryptedText, byte[] key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        byte[] bytes = Base64.getDecoder().decode(encryptedText);
+        Cipher encryptCipher = Cipher.getInstance("AES");
+        SecretKeySpec k = new SecretKeySpec(key, "AES");
+        encryptCipher.init(Cipher.DECRYPT_MODE, k);
+        byte[] plainText = encryptCipher.doFinal(bytes);
+        return new String(plainText);
+    }
+
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
         byte[] bytes = Base64.getDecoder().decode(cipherText);
 
@@ -83,5 +102,11 @@ public class CryptoUtils {
             rootHash = CryptoUtils.generateHash(rootHash);
         }
         return rootHash.equals(currentHash);
+    }
+
+    public static Key generateSymmetricKey() throws NoSuchAlgorithmException {
+        KeyGenerator generator = KeyGenerator.getInstance("AES");
+        generator.init(128);
+        return generator.generateKey();
     }
 }
