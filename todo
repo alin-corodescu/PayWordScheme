@@ -1,0 +1,18 @@
+Cristi : BrokerClientHandler : //vezi comentarii
+	-> implementat logica de handle a vendorului
+
+Cristi -> Client : // vezi comentarii - este putin de munca
+    ProductConsumer : trimite request la vendor pt a cumpara ceva, asteapta cerere de plata
+
+Alin : SocketCommunicationChannel: de implementat :
+	1. fara transformeri + testat ca  merge
+	2. plus transformeri
+
+Alin:    ClientCertificate : de implementat cu librarii de JSON
+    Commitment : tot cu librarii de JSON
+
+Cristi : HashChain : lista de hash-uri -- easy
+
+VendorClientHandler: -> verificare commitment(U) - data expirarii
+					-> sa trimita cereri de plata la U, eventual mesaj de finish
+					-> La finalul zilei (Thread.sleep(30s)) -> rascumpara toate ci-urile de la banca
