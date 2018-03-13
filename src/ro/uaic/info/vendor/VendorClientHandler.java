@@ -9,7 +9,6 @@ import ro.uaic.info.crypto.Commitment;
 import ro.uaic.info.crypto.CryptoUtils;
 import ro.uaic.info.json.JsonMapper;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -20,10 +19,13 @@ import java.util.Map;
  */
 public class VendorClientHandler implements ClientHandler {
     Map<String, Commitment> commitmentMap = new HashMap<>();
+
+    public Map<String, Commitment> getCommitmentMap() {
+        return commitmentMap;
+    }
+
     @Override
     public void handleClient(Socket socket) throws Exception {
-
-
 
         System.out.println("A new client is connecting to the vendor");
         CommunicationChannel channel = new SocketCommunicationChannel(socket);
@@ -53,7 +55,7 @@ public class VendorClientHandler implements ClientHandler {
             String identity = channel.readMessage();
             commitment = getCommitmentFor(identity);
         } else {
-            commitment = checkCommitment(message, channel);
+            commitment = generateAndCheckCommit(message, channel);
             ClientCertificateDTO clientCertificateDTO = (ClientCertificateDTO) JsonMapper.generateObjectFromJSON(commitment.getRepresentation().getClientCertificateString(), ClientCertificateDTO.class);
             commitment.setChainRoots(commitment.getRepresentation().getChainRoots());
             commitmentMap.put(clientCertificateDTO.getU(), commitment);
@@ -67,15 +69,16 @@ public class VendorClientHandler implements ClientHandler {
 //                How many steps did we skip? 1 = the next payword
             int steps = Integer.valueOf(channel.readMessage());
 
+            System.out.println("1" + commitment.getRepresentation().getChainRoots());
             if (commitment.processPayword(payword, index, steps)) {
-                System.out.println("Got the payment from chain " + index + " with " + steps + " steps");
+//                System.out.println("Got the payment from chain " + index + " with " + steps + " steps");
                 sum += commitment.getRepresentation().getChainValues().get(index) * steps;
-                System.out.println("Balance is now " + (price - sum));
+//                System.out.println("Balance is now " + (price - sum));
             }
         }
     }
 
-    private Commitment checkCommitment(String message, CommunicationChannel channel) throws Exception {
+    private Commitment generateAndCheckCommit(String message, CommunicationChannel channel) throws Exception {
         //                    message contains the commitment
         CommitmentDTO commitmentDTO =
                 (CommitmentDTO) JsonMapper.generateObjectFromJSON(message, CommitmentDTO.class);

@@ -23,7 +23,6 @@ public class Commitment extends SignedMessage {
 
     public Commitment(String message, String signature) {
         super(message, signature);
-
     }
 
     public static Commitment generateCommitment(String message, String signature) {
@@ -41,8 +40,16 @@ public class Commitment extends SignedMessage {
         return representation;
     }
 
+    public List<String> getLastPaywords() {
+        return lastPaywords;
+    }
+
+    public List<Integer> getUsedPaywords() {
+        return usedPaywords;
+    }
+
     public void setChainRoots(List<String> chainRoots) {
-        this.lastPaywords = chainRoots;
+        this.lastPaywords = new ArrayList<>(chainRoots);
     }
 
 
@@ -56,7 +63,9 @@ public class Commitment extends SignedMessage {
             payword = CryptoUtils.generateHash(payword);
         }
         if (paywordToCheckAgainst.equals(payword)) {
+            System.out.println("2" + this.representation.getChainRoots());
             lastPaywords.set(index, paywordCopy);
+            System.out.println("3" + this.representation.getChainRoots());
             usedPaywords.set(index, usedPaywords.get(index) + steps);
             return true;
         }
